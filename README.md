@@ -80,3 +80,37 @@ They are managed securely via:
 - Vercel Environment Variables (for production)
 
 Example:
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_anon_key
+
+
+---
+
+## 🗄️ Database Design (High Level)
+
+- `users`
+- `service_provider_profile`
+- `bookings`
+- `payments`
+- `reviews`
+
+> A unified user model is used to support dual-role behavior.
+
+---
+
+## 🧪 Testing
+- Unit tests configured using Vitest
+- Manual end-to-end testing for booking flows
+- Role & permission validation
+
+---
+
+## 📦 Installation & Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
