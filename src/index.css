@@ -1,0 +1,173 @@
+ @tailwind base;
+ @tailwind components;
+ @tailwind utilities;
+ 
+ /* HandyHive Design System - Warm Amber/Honey Theme */
+ 
+ @layer base {
+   :root {
+     /* Warm cream background */
+     --background: 45 33% 97%;
+     --foreground: 220 20% 14%;
+ 
+     /* Cards with subtle warmth */
+     --card: 0 0% 100%;
+     --card-foreground: 220 20% 14%;
+ 
+     --popover: 0 0% 100%;
+     --popover-foreground: 220 20% 14%;
+ 
+     /* Amber/Honey primary - the hive */
+     --primary: 38 92% 50%;
+     --primary-foreground: 220 20% 14%;
+ 
+     /* Warm slate secondary */
+     --secondary: 220 14% 96%;
+     --secondary-foreground: 220 20% 25%;
+ 
+     --muted: 45 20% 94%;
+     --muted-foreground: 220 10% 46%;
+ 
+     /* Honey accent */
+     --accent: 38 92% 95%;
+     --accent-foreground: 38 92% 35%;
+ 
+     --destructive: 0 84% 60%;
+     --destructive-foreground: 0 0% 100%;
+ 
+     /* Success - teal green */
+     --success: 158 64% 42%;
+     --success-foreground: 0 0% 100%;
+ 
+     --border: 220 13% 90%;
+     --input: 220 13% 90%;
+     --ring: 38 92% 50%;
+ 
+     --radius: 0.75rem;
+ 
+     /* Sidebar */
+     --sidebar-background: 220 20% 14%;
+     --sidebar-foreground: 45 20% 95%;
+     --sidebar-primary: 38 92% 50%;
+     --sidebar-primary-foreground: 220 20% 14%;
+     --sidebar-accent: 220 15% 20%;
+     --sidebar-accent-foreground: 45 20% 95%;
+     --sidebar-border: 220 15% 25%;
+     --sidebar-ring: 38 92% 50%;
+ 
+     /* Custom colors */
+     --honey: 38 92% 50%;
+     --honey-light: 38 92% 95%;
+     --honey-dark: 38 92% 40%;
+     --slate-dark: 220 20% 14%;
+     --warm-gray: 30 10% 50%;
+   }
+ 
+   .dark {
+     --background: 220 20% 10%;
+     --foreground: 45 20% 95%;
+ 
+     --card: 220 18% 14%;
+     --card-foreground: 45 20% 95%;
+ 
+     --popover: 220 18% 14%;
+     --popover-foreground: 45 20% 95%;
+ 
+     --primary: 38 92% 55%;
+     --primary-foreground: 220 20% 10%;
+ 
+     --secondary: 220 15% 20%;
+     --secondary-foreground: 45 20% 90%;
+ 
+     --muted: 220 15% 18%;
+     --muted-foreground: 220 10% 60%;
+ 
+     --accent: 38 70% 25%;
+     --accent-foreground: 38 92% 80%;
+ 
+     --destructive: 0 70% 45%;
+     --destructive-foreground: 0 0% 100%;
+ 
+     --success: 158 64% 35%;
+     --success-foreground: 0 0% 100%;
+ 
+     --border: 220 15% 25%;
+     --input: 220 15% 25%;
+     --ring: 38 92% 55%;
+ 
+     --sidebar-background: 220 20% 8%;
+     --sidebar-foreground: 45 20% 95%;
+     --sidebar-primary: 38 92% 55%;
+     --sidebar-primary-foreground: 220 20% 10%;
+     --sidebar-accent: 220 15% 15%;
+     --sidebar-accent-foreground: 45 20% 95%;
+     --sidebar-border: 220 15% 18%;
+     --sidebar-ring: 38 92% 55%;
+   }
+ }
+ 
+ @layer base {
+   * {
+     @apply border-border;
+   }
+ 
+   body {
+     @apply bg-background text-foreground antialiased;
+     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+   }
+ 
+   h1, h2, h3, h4, h5, h6 {
+     @apply font-semibold tracking-tight;
+   }
+ }
+ 
+ @layer utilities {
+   .gradient-honey {
+     background: linear-gradient(135deg, hsl(38 92% 55%) 0%, hsl(28 90% 50%) 100%);
+   }
+   
+   .gradient-honey-soft {
+     background: linear-gradient(135deg, hsl(38 92% 97%) 0%, hsl(45 50% 95%) 100%);
+   }
+   
+   .gradient-dark {
+     background: linear-gradient(135deg, hsl(220 20% 14%) 0%, hsl(220 25% 20%) 100%);
+   }
+   
+   .text-gradient-honey {
+     background: linear-gradient(135deg, hsl(38 92% 45%) 0%, hsl(28 90% 40%) 100%);
+     -webkit-background-clip: text;
+     -webkit-text-fill-color: transparent;
+     background-clip: text;
+   }
+   
+   .shadow-honey {
+     box-shadow: 0 10px 40px -10px hsl(38 92% 50% / 0.25);
+   }
+   
+   .shadow-soft {
+     box-shadow: 0 4px 20px -4px hsl(220 20% 14% / 0.08);
+   }
+   
+   .animate-float {
+     animation: float 6s ease-in-out infinite;
+   }
+   
+   @keyframes float {
+     0%, 100% { transform: translateY(0); }
+     50% { transform: translateY(-10px); }
+   }
+   
+   .animate-fade-in {
+     animation: fadeIn 0.5s ease-out forwards;
+   }
+   
+   @keyframes fadeIn {
+     from { opacity: 0; transform: translateY(10px); }
+     to { opacity: 1; transform: translateY(0); }
+   }
+   
+   .honeycomb-pattern {
+     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23f59e0b' fill-opacity='0.05'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+   }
+ }
