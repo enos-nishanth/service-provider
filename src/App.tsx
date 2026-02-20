@@ -13,6 +13,14 @@ import ProviderSignup from "./pages/ProviderSignup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Contact from "./pages/Contact";
+import About from "./pages/About";
+import Blog from "./pages/Blog";
+import Safety from "./pages/Safety";
+import Help from "./pages/Help";
+import Careers from "./pages/Careers";
 
 // Unified dashboard
 import Dashboard from "./pages/Dashboard";
@@ -56,6 +64,16 @@ const App = () => (
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          
+          {/* Info Pages */}
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/safety" element={<Safety />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/careers" element={<Careers />} />
 
           {/* Unified Dashboard - All authenticated users */}
           <Route path="/dashboard" element={<Dashboard />} />
