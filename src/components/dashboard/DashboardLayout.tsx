@@ -40,7 +40,7 @@ interface DashboardLayoutProps {
 const customerNavItems: NavItem[] = [
   { name: "Dashboard", path: "/dashboard", icon: Home },
   { name: "My Bookings", path: "/bookings", icon: Calendar },
-  { name: "Browse Services", path: "/services", icon: Search },
+  { name: "Browse Services", path: "/browse", icon: Search },
   { name: "Profile", path: "/profile", icon: User },
 ];
 

@@ -224,7 +224,7 @@ const CustomerDashboard = () => {
                   title="No bookings yet"
                   description="Book your first service to get started"
                   actionLabel="Browse Services"
-                  actionHref="/services"
+                  actionHref="/browse"
                 />
               ) : (
                 <div className="space-y-4">

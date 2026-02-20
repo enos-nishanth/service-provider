@@ -33,6 +33,7 @@ import BookingDetail from "./pages/customer/BookingDetail";
 import BookingsHistory from "./pages/customer/BookingsHistory";
 import ReviewPage from "./pages/customer/ReviewPage";
 import CustomerProfile from "./pages/customer/CustomerProfile";
+import BrowseServices from "./pages/customer/BrowseServices";
 
 // Provider pages
 import KYCVerification from "./pages/provider/KYCVerification";
@@ -80,6 +81,7 @@ const App = () => (
           <Route path="/become-provider" element={<BecomeProvider />} />
 
           {/* Customer Routes - All authenticated users can book */}
+          <Route path="/browse" element={<BrowseServices />} />
           <Route path="/book/:providerId" element={<BookingPage />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/bookings" element={<BookingsHistory />} />
