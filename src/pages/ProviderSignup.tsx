@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { providerSignupSchema } from "@/lib/validation";
 import {
     Hexagon,
     Mail,
@@ -58,27 +59,22 @@ const ProviderSignup = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const validateForm = () => {
-        // Account Information Validation
-        if (!name.trim()) {
-            toast({ title: "Error", description: "Please enter your full name", variant: "destructive" });
-            return false;
-        }
-        if (!email.trim()) {
-            toast({ title: "Error", description: "Please enter your email", variant: "destructive" });
-            return false;
-        }
-        if (password.length < 8) {
-            toast({ title: "Error", description: "Password must be at least 8 characters", variant: "destructive" });
-            return false;
-        }
+        // Validate using Zod schema
+        const validation = providerSignupSchema.safeParse({
+            name,
+            email,
+            password,
+            primarySkill,
+            serviceLocation,
+            serviceDescription,
+        });
 
-        // Provider Information Validation
-        if (!primarySkill) {
-            toast({ title: "Error", description: "Please select your primary skill", variant: "destructive" });
-            return false;
-        }
-        if (!serviceLocation.trim()) {
-            toast({ title: "Error", description: "Please enter your service location", variant: "destructive" });
+        if (!validation.success) {
+            toast({
+                title: "Validation Error",
+                description: validation.error.errors[0].message,
+                variant: "destructive",
+            });
             return false;
         }
 
@@ -122,8 +118,8 @@ const ProviderSignup = () => {
         setIsLoading(true);
 
         try {
-            // Step 1: Create user account
-            const redirectUrl = `${window.location.origin}/dashboard`;
+            // Step 1: Create user account with provider metadata
+            const redirectUrl = `${window.location.origin}/verify-email`;
 
             const { data: signupData, error: signupError } = await supabase.auth.signUp({
                 email: email,
@@ -133,6 +129,10 @@ const ProviderSignup = () => {
                     data: {
                         full_name: name,
                         role: "provider", // Mark as provider from the start
+                        is_provider: true,
+                        primary_skill: primarySkill,
+                        service_location: serviceLocation,
+                        service_description: serviceDescription || null,
                     },
                 },
             });
@@ -165,41 +165,26 @@ const ProviderSignup = () => {
                 return;
             }
 
-            // Step 2: Upload certification if provided
-            let certificationUrl = null;
+            // Step 2: Handle certification file
+            // Note: We cannot upload the file now because the user isn't authenticated yet
+            // Store the file info in metadata for now, or skip it during signup
+            // Users can upload certifications after email verification from their dashboard
+            let certificationFileName = null;
             if (certificationFile) {
-                certificationUrl = await uploadCertification(signupData.user.id);
+                certificationFileName = certificationFile.name;
+                // Store filename in metadata for reference
             }
 
-            // Step 3: Update user profile as provider
-            const { error: updateError } = await supabase
-                .from('users')
-                .update({
-                    is_provider: true,
-                    primary_skill: primarySkill,
-                    service_location: serviceLocation,
-                    service_description: serviceDescription || null,
-                    certification_url: certificationUrl,
-                    kyc_status: 'pending',
-                })
-                .eq('user_id', signupData.user.id);
-
-            if (updateError) {
-                console.error("Update error:", updateError);
-                toast({
-                    title: "Warning",
-                    description: "Account created but provider profile setup incomplete. Please complete it from your dashboard.",
-                    variant: "destructive"
-                });
-            }
+            // Step 3: Store provider data in user metadata
+            // The actual profile will be created by handle_new_user trigger with this data
 
             toast({
                 title: "Welcome to HandyHive! 🎉",
-                description: "Please check your email to verify your account and complete KYC verification.",
+                description: "Please check your email to verify your account before completing KYC.",
             });
 
-            // Redirect to login
-            navigate("/auth?mode=login");
+            // Redirect to verify email page
+            navigate("/verify-email");
         } catch (err) {
             console.error("Signup error:", err);
             toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });

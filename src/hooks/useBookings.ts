@@ -40,14 +40,138 @@ interface UseBookingsOptions {
   role: "customer" | "provider";
   status?: string | string[];
   limit?: number;
+  page?: number;
+  pageSize?: number;
 }
 
 export const useBookings = (options: UseBookingsOptions) => {
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+    const abortController = new AbortController();
+
+    const fetchBookings = async () => {
+      if (!isMounted) return;
+      
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          if (isMounted) {
+            setError("Please sign in to view bookings");
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        const userIdField = options.role === "customer" ? "customer_id" : "provider_id";
+        const relatedField = options.role === "customer" ? "provider" : "customer";
+        
+        // Use pagination if page and pageSize are provided, otherwise use limit
+        const usePagination = options.page !== undefined && options.pageSize !== undefined;
+        const page = options.page || 0;
+        const pageSize = options.pageSize || 10;
+        
+        let query = supabase
+          .from("bookings")
+          .select(`
+            *,
+            ${relatedField}:users!${options.role === "customer" ? "provider_id" : "customer_id"}(
+              user_id,
+              full_name,
+              email,
+              mobile,
+              avatar_url,
+              average_rating
+            )
+          `, { count: usePagination ? "exact" : undefined })
+          .eq(userIdField, user.id)
+          .order("created_at", { ascending: false });
+
+        if (options.status) {
+          if (Array.isArray(options.status)) {
+            query = query.in("status", options.status);
+          } else {
+            query = query.eq("status", options.status);
+          }
+        }
+
+        if (usePagination) {
+          const start = page * pageSize;
+          const end = start + pageSize - 1;
+          query = query.range(start, end);
+        } else if (options.limit) {
+          query = query.limit(options.limit);
+        }
+
+        const { data, error: bookingsError, count } = await query;
+        
+        if (usePagination && count !== null && isMounted) {
+          setTotalCount(count);
+          setTotalPages(Math.ceil(count / pageSize));
+        }
+
+        if (bookingsError) throw bookingsError;
+
+        if (!isMounted) return;
+
+        if (!data || data.length === 0) {
+          setBookings([]);
+          setIsLoading(false);
+          return;
+        }
+
+        // Data already includes related user info from JOIN
+        const bookingsWithDetails: BookingWithDetails[] = data.map((booking: any) => {
+          const relatedUser = booking[options.role === "customer" ? "provider" : "customer"];
+
+          return {
+            ...booking,
+            ...(options.role === "customer"
+              ? {
+                  provider: relatedUser
+                    ? {
+                        full_name: relatedUser.full_name,
+                        mobile: relatedUser.mobile,
+                        avatar_url: relatedUser.avatar_url,
+                        average_rating: relatedUser.average_rating,
+                      }
+                    : undefined,
+                }
+              : {
+                  customer: relatedUser
+                    ? {
+                        full_name: relatedUser.full_name,
+                        email: relatedUser.email,
+                        mobile: relatedUser.mobile,
+                      }
+                    : undefined,
+                }),
+          };
+        });
+
+        if (isMounted) {
+          setBookings(bookingsWithDetails);
+        }
+      } catch (err: any) {
+        if (isMounted && err.name !== 'AbortError') {
+          console.error("Error fetching bookings:", err);
+          setError(err.message || "Failed to load bookings");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
     fetchBookings();
 
     // Real-time subscription
@@ -57,17 +181,21 @@ export const useBookings = (options: UseBookingsOptions) => {
         "postgres_changes",
         { event: "*", schema: "public", table: "bookings" },
         () => {
-          fetchBookings();
+          if (isMounted) {
+            fetchBookings();
+          }
         }
       )
       .subscribe();
 
     return () => {
+      isMounted = false;
+      abortController.abort();
       supabase.removeChannel(channel);
     };
-  }, [options.role, options.status]);
+  }, [options.role, options.status, options.limit, options.page, options.pageSize]);
 
-  const fetchBookings = async () => {
+  const refetch = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -79,10 +207,26 @@ export const useBookings = (options: UseBookingsOptions) => {
       }
 
       const userIdField = options.role === "customer" ? "customer_id" : "provider_id";
+      const relatedField = options.role === "customer" ? "provider" : "customer";
+      
+      // Use pagination if page and pageSize are provided, otherwise use limit
+      const usePagination = options.page !== undefined && options.pageSize !== undefined;
+      const page = options.page || 0;
+      const pageSize = options.pageSize || 10;
       
       let query = supabase
         .from("bookings")
-        .select("*")
+        .select(`
+          *,
+          ${relatedField}:users!${options.role === "customer" ? "provider_id" : "customer_id"}(
+            user_id,
+            full_name,
+            email,
+            mobile,
+            avatar_url,
+            average_rating
+          )
+        `, { count: usePagination ? "exact" : undefined })
         .eq(userIdField, user.id)
         .order("created_at", { ascending: false });
 
@@ -94,11 +238,20 @@ export const useBookings = (options: UseBookingsOptions) => {
         }
       }
 
-      if (options.limit) {
+      if (usePagination) {
+        const start = page * pageSize;
+        const end = start + pageSize - 1;
+        query = query.range(start, end);
+      } else if (options.limit) {
         query = query.limit(options.limit);
       }
 
-      const { data, error: bookingsError } = await query;
+      const { data, error: bookingsError, count } = await query;
+      
+      if (usePagination && count !== null) {
+        setTotalCount(count);
+        setTotalPages(Math.ceil(count / pageSize));
+      }
 
       if (bookingsError) throw bookingsError;
 
@@ -107,22 +260,9 @@ export const useBookings = (options: UseBookingsOptions) => {
         return;
       }
 
-      // Fetch related user info from users table
-      const relatedUserIds = [...new Set(
-        data.map((b) => options.role === "customer" ? b.provider_id : b.customer_id)
-      )];
-
-      const { data: usersData } = await supabase
-        .from("users")
-        .select("user_id, full_name, email, mobile, avatar_url, average_rating")
-        .in("user_id", relatedUserIds);
-
-      const usersMap = new Map(usersData?.map((u) => [u.user_id, u]));
-
-      const bookingsWithDetails: BookingWithDetails[] = data.map((booking) => {
-        const relatedUser = usersMap.get(
-          options.role === "customer" ? booking.provider_id : booking.customer_id
-        );
+      // Data already includes related user info from JOIN
+      const bookingsWithDetails: BookingWithDetails[] = data.map((booking: any) => {
+        const relatedUser = booking[options.role === "customer" ? "provider" : "customer"];
 
         return {
           ...booking,
@@ -158,7 +298,7 @@ export const useBookings = (options: UseBookingsOptions) => {
     }
   };
 
-  return { bookings, isLoading, error, refetch: fetchBookings };
+  return { bookings, isLoading, error, refetch, totalCount, totalPages };
 };
 
 export const useBookingStats = (role: "customer" | "provider") => {

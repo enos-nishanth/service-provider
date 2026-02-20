@@ -10,6 +10,9 @@ import Auth from "./pages/Auth";
 import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
 import ProviderSignup from "./pages/ProviderSignup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
 
 // Unified dashboard
 import Dashboard from "./pages/Dashboard";
@@ -50,6 +53,9 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/services" element={<Services />} />
           <Route path="/provider-signup" element={<ProviderSignup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
           {/* Unified Dashboard - All authenticated users */}
           <Route path="/dashboard" element={<Dashboard />} />

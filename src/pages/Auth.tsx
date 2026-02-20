@@ -7,6 +7,8 @@ import { Hexagon, Mail, Lock, User, ArrowRight, ArrowLeft, Loader2 } from "lucid
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRedirectIfAuthenticated } from "@/hooks/useAuth";
+import { loginSchema, signupSchema } from "@/lib/validation";
+import { rateLimiter, RATE_LIMITS } from "@/lib/rateLimiter";
 
 type AuthStep = "login" | "signup";
 
@@ -37,6 +39,31 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Check rate limit
+    const rateLimitKey = `login:${email}`;
+    if (!rateLimiter.checkLimit(rateLimitKey, RATE_LIMITS.login)) {
+      const resetTime = rateLimiter.getResetTime(rateLimitKey);
+      toast({
+        title: "Too Many Attempts",
+        description: `Please try again in ${resetTime} seconds.`,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate input
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      toast({
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
@@ -53,6 +80,17 @@ const Auth = () => {
       }
 
       if (data.user) {
+        // Check if email is verified
+        if (!data.user.email_confirmed_at) {
+          toast({
+            title: "Email Not Verified",
+            description: "Please verify your email before logging in.",
+            variant: "destructive",
+          });
+          navigate("/verify-email");
+          return;
+        }
+
         toast({
           title: "Welcome back!",
           description: "You have successfully logged in.",
@@ -74,10 +112,25 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (password.length < 8) {
+    // Check rate limit
+    const rateLimitKey = `signup:${email}`;
+    if (!rateLimiter.checkLimit(rateLimitKey, RATE_LIMITS.signup)) {
+      const resetTime = rateLimiter.getResetTime(rateLimitKey);
       toast({
-        title: "Password too short",
-        description: "Password must be at least 8 characters",
+        title: "Too Many Attempts",
+        description: `Please try again in ${resetTime} seconds.`,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate input
+    const validation = signupSchema.safeParse({ name, email, password });
+    if (!validation.success) {
+      toast({
+        title: "Validation Error",
+        description: validation.error.errors[0].message,
         variant: "destructive",
       });
       setIsLoading(false);
@@ -85,7 +138,7 @@ const Auth = () => {
     }
 
     try {
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      const redirectUrl = `${window.location.origin}/verify-email`;
 
       const { data, error } = await supabase.auth.signUp({
         email: email,
@@ -94,7 +147,8 @@ const Auth = () => {
           emailRedirectTo: redirectUrl,
           data: {
             full_name: name,
-            role: "customer", // Everyone starts as a customer
+            role: "customer",
+            is_provider: false, // Regular customers are not providers
           },
         },
       });
@@ -122,11 +176,8 @@ const Auth = () => {
           title: "Account created!",
           description: "Please check your email to verify your account.",
         });
-        // Clear form and go to login
-        setEmail("");
-        setPassword("");
-        setName("");
-        setStep("login");
+        // Redirect to verify email page
+        navigate("/verify-email");
       }
     } catch (error: any) {
       toast({
