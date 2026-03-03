@@ -72,26 +72,16 @@ export const useBookings = (options: UseBookingsOptions) => {
         }
 
         const userIdField = options.role === "customer" ? "customer_id" : "provider_id";
-        const relatedField = options.role === "customer" ? "provider" : "customer";
         
         // Use pagination if page and pageSize are provided, otherwise use limit
         const usePagination = options.page !== undefined && options.pageSize !== undefined;
         const page = options.page || 0;
         const pageSize = options.pageSize || 10;
         
+        // Fetch bookings without JOIN
         let query = supabase
           .from("bookings")
-          .select(`
-            *,
-            ${relatedField}:users!bookings_${options.role === "customer" ? "provider_id" : "customer_id"}_fkey(
-              user_id,
-              full_name,
-              email,
-              mobile,
-              avatar_url,
-              average_rating
-            )
-          `, { count: usePagination ? "exact" : undefined })
+          .select("*", { count: usePagination ? "exact" : undefined })
           .eq(userIdField, user.id)
           .order("created_at", { ascending: false });
 
@@ -128,9 +118,27 @@ export const useBookings = (options: UseBookingsOptions) => {
           return;
         }
 
-        // Data already includes related user info from JOIN
+        // Fetch related user data separately
+        const relatedUserIds = data.map((booking: any) => 
+          options.role === "customer" ? booking.provider_id : booking.customer_id
+        );
+
+        const { data: usersData, error: usersError } = await supabase
+          .from("users")
+          .select("user_id, full_name, email, mobile, avatar_url, average_rating")
+          .in("user_id", relatedUserIds);
+
+        if (usersError) throw usersError;
+
+        // Create a map of users by user_id for quick lookup
+        const usersMap = new Map(
+          (usersData || []).map((user: any) => [user.user_id, user])
+        );
+
+        // Combine bookings with user data
         const bookingsWithDetails: BookingWithDetails[] = data.map((booking: any) => {
-          const relatedUser = booking[options.role === "customer" ? "provider" : "customer"];
+          const relatedUserId = options.role === "customer" ? booking.provider_id : booking.customer_id;
+          const relatedUser = usersMap.get(relatedUserId);
 
           return {
             ...booking,
@@ -207,26 +215,16 @@ export const useBookings = (options: UseBookingsOptions) => {
       }
 
       const userIdField = options.role === "customer" ? "customer_id" : "provider_id";
-      const relatedField = options.role === "customer" ? "provider" : "customer";
       
       // Use pagination if page and pageSize are provided, otherwise use limit
       const usePagination = options.page !== undefined && options.pageSize !== undefined;
       const page = options.page || 0;
       const pageSize = options.pageSize || 10;
       
+      // Fetch bookings without JOIN
       let query = supabase
         .from("bookings")
-        .select(`
-          *,
-          ${relatedField}:users!bookings_${options.role === "customer" ? "provider_id" : "customer_id"}_fkey(
-            user_id,
-            full_name,
-            email,
-            mobile,
-            avatar_url,
-            average_rating
-          )
-        `, { count: usePagination ? "exact" : undefined })
+        .select("*", { count: usePagination ? "exact" : undefined })
         .eq(userIdField, user.id)
         .order("created_at", { ascending: false });
 
@@ -260,9 +258,27 @@ export const useBookings = (options: UseBookingsOptions) => {
         return;
       }
 
-      // Data already includes related user info from JOIN
+      // Fetch related user data separately
+      const relatedUserIds = data.map((booking: any) => 
+        options.role === "customer" ? booking.provider_id : booking.customer_id
+      );
+
+      const { data: usersData, error: usersError } = await supabase
+        .from("users")
+        .select("user_id, full_name, email, mobile, avatar_url, average_rating")
+        .in("user_id", relatedUserIds);
+
+      if (usersError) throw usersError;
+
+      // Create a map of users by user_id for quick lookup
+      const usersMap = new Map(
+        (usersData || []).map((user: any) => [user.user_id, user])
+      );
+
+      // Combine bookings with user data
       const bookingsWithDetails: BookingWithDetails[] = data.map((booking: any) => {
-        const relatedUser = booking[options.role === "customer" ? "provider" : "customer"];
+        const relatedUserId = options.role === "customer" ? booking.provider_id : booking.customer_id;
+        const relatedUser = usersMap.get(relatedUserId);
 
         return {
           ...booking,
