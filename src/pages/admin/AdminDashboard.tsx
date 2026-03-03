@@ -1,5 +1,5 @@
  import { useState, useEffect } from "react";
- import { useNavigate } from "react-router-dom";
+ import { useNavigate, Link } from "react-router-dom";
  import DashboardLayout from "@/components/dashboard/DashboardLayout";
  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  import { Button } from "@/components/ui/button";
@@ -392,14 +392,18 @@
                            <p className="text-xs text-muted-foreground">Submitted {format(new Date(kyc.created_at), "MMM d, yyyy")}</p>
                          </div>
                        </div>
-                       <Button size="sm" variant="outline">Review</Button>
+                       <Button size="sm" variant="outline" asChild>
+                         <Link to="/admin/users?tab=kyc">Review</Link>
+                       </Button>
                      </div>
                    ))}
                  </div>
                )}
                {pendingKYC.length > 4 && (
-                 <Button variant="ghost" className="mt-4 w-full">
-                   View All ({pendingKYC.length}) <ArrowRight className="ml-2 h-4 w-4" />
+                 <Button variant="ghost" className="mt-4 w-full" asChild>
+                   <Link to="/admin/users?tab=kyc">
+                     View All ({pendingKYC.length}) <ArrowRight className="ml-2 h-4 w-4" />
+                   </Link>
                  </Button>
                )}
              </CardContent>

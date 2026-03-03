@@ -1,5 +1,5 @@
  import { useState, useEffect } from "react";
- import { useNavigate } from "react-router-dom";
+ import { useNavigate, useSearchParams } from "react-router-dom";
  import DashboardLayout from "@/components/dashboard/DashboardLayout";
  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  import { Button } from "@/components/ui/button";
@@ -79,13 +79,14 @@ interface Profile {
  
  const UserManagement = () => {
    const navigate = useNavigate();
+   const [searchParams] = useSearchParams();
    const [isLoading, setIsLoading] = useState(true);
    const [isAuthorized, setIsAuthorized] = useState(false);
    const [customers, setCustomers] = useState<Profile[]>([]);
    const [providers, setProviders] = useState<Profile[]>([]);
    const [kycVerifications, setKycVerifications] = useState<KYCVerification[]>([]);
    const [searchQuery, setSearchQuery] = useState("");
-   const [activeTab, setActiveTab] = useState("customers");
+   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "customers");
  
    // KYC Review Modal
    const [selectedKYC, setSelectedKYC] = useState<KYCVerification | null>(null);
