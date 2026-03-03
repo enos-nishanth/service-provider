@@ -83,7 +83,7 @@ export const useBookings = (options: UseBookingsOptions) => {
           .from("bookings")
           .select(`
             *,
-            ${relatedField}:users!${options.role === "customer" ? "provider_id" : "customer_id"}(
+            ${relatedField}:users!bookings_${options.role === "customer" ? "provider_id" : "customer_id"}_fkey(
               user_id,
               full_name,
               email,
@@ -218,7 +218,7 @@ export const useBookings = (options: UseBookingsOptions) => {
         .from("bookings")
         .select(`
           *,
-          ${relatedField}:users!${options.role === "customer" ? "provider_id" : "customer_id"}(
+          ${relatedField}:users!bookings_${options.role === "customer" ? "provider_id" : "customer_id"}_fkey(
             user_id,
             full_name,
             email,
