@@ -186,6 +186,21 @@
 
     return (
       <DashboardLayout isProvider activeMode="provider">
+        {/* Demo Mode Banner */}
+        <div className="mb-6 rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/20">
+              <Wallet className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="font-medium text-foreground">Earnings Dashboard - View Only</p>
+              <p className="text-sm text-muted-foreground">
+                Withdrawal feature coming soon. You'll be able to transfer earnings to your bank account.
+              </p>
+            </div>
+          </div>
+        </div>
+
        <div className="space-y-6">
          {/* Header */}
          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

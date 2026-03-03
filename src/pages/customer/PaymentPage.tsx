@@ -244,6 +244,13 @@
  
    return (
      <div className="min-h-screen bg-background">
+       {/* Demo Mode Banner */}
+       <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-center">
+         <p className="text-sm text-amber-700">
+           <strong>Demo Mode:</strong> Payment processing is simulated. In production, this will integrate with Razorpay for secure payments.
+         </p>
+       </div>
+
        {/* Header */}
        <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-lg">
          <div className="container mx-auto flex h-16 items-center justify-between px-4">
