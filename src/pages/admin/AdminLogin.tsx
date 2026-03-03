@@ -39,14 +39,13 @@
          const { data: { session } } = await supabase.auth.getSession();
          if (session?.user) {
            // Check if user has admin role
-           const { data: roleData } = await supabase
-             .from("user_roles")
+           const { data: userData } = await supabase
+             .from("users")
              .select("role")
              .eq("user_id", session.user.id)
-             .eq("role", "admin")
              .single();
  
-           if (roleData) {
+           if (userData?.role === "admin") {
              navigate("/admin");
              return;
            }
@@ -98,14 +97,13 @@
        }
  
        // Check if user has admin role
-       const { data: roleData, error: roleError } = await supabase
-         .from("user_roles")
+       const { data: userData, error: roleError } = await supabase
+         .from("users")
          .select("role")
          .eq("user_id", authData.user.id)
-         .eq("role", "admin")
          .single();
  
-       if (roleError || !roleData) {
+       if (roleError || !userData || userData.role !== "admin") {
          // Sign out non-admin user
          await supabase.auth.signOut();
          setError("Access denied. You are not authorized to access the admin panel.");

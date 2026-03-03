@@ -86,14 +86,13 @@
            return;
          }
  
-         const { data: roleData, error } = await supabase
-           .from("user_roles")
+         const { data: userData, error } = await supabase
+           .from("users")
            .select("role")
            .eq("user_id", session.user.id)
-           .eq("role", "admin")
            .single();
  
-         if (error || !roleData) {
+         if (error || !userData || userData.role !== "admin") {
            await supabase.auth.signOut();
            navigate("/admin/login");
            return;

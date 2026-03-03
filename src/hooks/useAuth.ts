@@ -51,15 +51,14 @@ export const useAuth = (): UseAuthReturn => {
       setProfile(data as UserProfile);
     }
 
-    // Check admin role from user_roles table
-    const { data: roleData } = await supabase
-      .from("user_roles")
+    // Check admin role from users table
+    const { data: userData } = await supabase
+      .from("users")
       .select("role")
       .eq("user_id", userId)
-      .eq("role", "admin")
       .single();
 
-    setIsAdmin(!!roleData);
+    setIsAdmin(userData?.role === "admin");
   }, []);
 
   const refreshProfile = useCallback(async () => {
@@ -201,15 +200,14 @@ export const useRequireAdmin = (redirectTo = "/dashboard") => {
         return;
       }
 
-      // Check admin role from user_roles table
-      const { data: roleData } = await supabase
-        .from("user_roles")
+      // Check admin role from users table
+      const { data: userData } = await supabase
+        .from("users")
         .select("role")
         .eq("user_id", user.id)
-        .eq("role", "admin")
         .single();
 
-      if (!roleData) {
+      if (!userData || userData.role !== "admin") {
         navigate(redirectTo);
       } else {
         setIsAuthorized(true);
