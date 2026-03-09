@@ -53,7 +53,7 @@ const CustomerDashboard = () => {
       .single();
 
     if (data) {
-      setUserName(data.full_name.split(" ")[0]);
+      setUserName((data as { full_name: string }).full_name.split(" ")[0]);
     }
   };
 

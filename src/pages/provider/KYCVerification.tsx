@@ -200,7 +200,7 @@
        
        if (kycData) {
          // Update existing
-         const { error } = await supabase
+         const { error } = await (supabase as any)
            .from('kyc_verifications')
            .update(kycPayload)
            .eq('user_id', userId);
@@ -208,7 +208,7 @@
          if (error) throw error;
        } else {
          // Insert new
-         const { error } = await supabase
+         const { error } = await (supabase as any)
            .from('kyc_verifications')
            .insert(kycPayload);
          
@@ -216,7 +216,7 @@
        }
        
        // Update profile kyc_status
-      await supabase
+      await (supabase as any)
         .from('users')
         .update({ kyc_status: 'pending' })
         .eq('user_id', userId);

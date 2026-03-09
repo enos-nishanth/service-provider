@@ -121,20 +121,20 @@
        }
  
        // Fetch schedules
-       const { data: schedulesData } = await supabase
+       const { data: schedulesData } = await (supabase as any)
          .from("provider_schedules")
          .select("*")
          .eq("provider_id", user.id);
  
        if (schedulesData && schedulesData.length > 0) {
          const mergedSchedules = daysOfWeek.map((day) => {
-           const existing = schedulesData.find((s) => s.day_of_week === day.value);
+           const existing = (schedulesData as any[]).find((s: any) => s.day_of_week === day.value);
            return existing
              ? {
-                 day_of_week: existing.day_of_week,
-                 is_working: existing.is_working,
-                 start_time: existing.start_time.slice(0, 5),
-                 end_time: existing.end_time.slice(0, 5),
+                 day_of_week: (existing as any).day_of_week,
+                 is_working: (existing as any).is_available,
+                 start_time: (existing as any).start_time.slice(0, 5),
+                 end_time: (existing as any).end_time.slice(0, 5),
                }
              : {
                  day_of_week: day.value,
@@ -147,7 +147,7 @@
        }
  
        // Fetch skills
-       const { data: skillsData } = await supabase
+       const { data: skillsData } = await (supabase as any)
          .from("provider_skills")
          .select("*")
          .eq("provider_id", user.id);
@@ -157,7 +157,7 @@
        }
  
        // Fetch service areas
-       const { data: areasData } = await supabase
+       const { data: areasData } = await (supabase as any)
          .from("provider_service_areas")
          .select("*")
          .eq("provider_id", user.id);
@@ -251,19 +251,19 @@
        }
  
        // Delete and re-insert schedules
-       await supabase.from("provider_schedules").delete().eq("provider_id", user.id);
+       await (supabase as any).from("provider_schedules").delete().eq("provider_id", user.id);
        const schedulesToInsert = schedules.map((s) => ({
          provider_id: user.id,
          day_of_week: s.day_of_week,
-         is_working: s.is_working,
+         is_available: s.is_working,
          start_time: s.start_time,
          end_time: s.end_time,
        }));
-       const { error: schedError } = await supabase.from("provider_schedules").insert(schedulesToInsert);
+       const { error: schedError } = await (supabase as any).from("provider_schedules").insert(schedulesToInsert);
        if (schedError) throw schedError;
  
        // Delete and re-insert skills
-       await supabase.from("provider_skills").delete().eq("provider_id", user.id);
+       await (supabase as any).from("provider_skills").delete().eq("provider_id", user.id);
        if (skills.length > 0) {
          const skillsToInsert = skills.map((s) => ({
            provider_id: user.id,
@@ -271,12 +271,12 @@
            experience_years: s.experience_years,
            is_primary: s.is_primary,
          }));
-         const { error: skillError } = await supabase.from("provider_skills").insert(skillsToInsert);
+         const { error: skillError } = await (supabase as any).from("provider_skills").insert(skillsToInsert);
          if (skillError) throw skillError;
        }
  
        // Delete and re-insert service areas
-       await supabase.from("provider_service_areas").delete().eq("provider_id", user.id);
+       await (supabase as any).from("provider_service_areas").delete().eq("provider_id", user.id);
        if (serviceAreas.length > 0) {
          const areasToInsert = serviceAreas.map((a) => ({
            provider_id: user.id,
@@ -284,14 +284,14 @@
            pincode: a.pincode || null,
            radius_km: a.radius_km,
          }));
-         const { error: areaError } = await supabase.from("provider_service_areas").insert(areasToInsert);
+         const { error: areaError } = await (supabase as any).from("provider_service_areas").insert(areasToInsert);
          if (areaError) throw areaError;
        }
  
        // Update primary skill in profile
        const primarySkill = skills.find((s) => s.is_primary);
        if (primarySkill) {
-        await supabase
+        await (supabase as any)
           .from("users")
           .update({ primary_skill: primarySkill.skill_name })
           .eq("user_id", user.id);

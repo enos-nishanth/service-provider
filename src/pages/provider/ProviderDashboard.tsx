@@ -73,11 +73,11 @@ const ProviderDashboard = () => {
       .single();
 
     if (profileData) {
-      if (!profileData.is_provider) {
+      if (!(profileData as any).is_provider) {
         navigate("/dashboard");
         return;
       }
-      setUserName(profileData.full_name.split(" ")[0]);
+      setUserName((profileData as any).full_name.split(" ")[0]);
     }
 
     // Fetch KYC status
@@ -87,7 +87,7 @@ const ProviderDashboard = () => {
       .eq("user_id", user.id)
       .single();
     
-    setKycStatus(kycData?.status || null);
+    setKycStatus((kycData as any)?.status || null);
     setIsKYCLoading(false);
   };
 
@@ -109,11 +109,11 @@ const ProviderDashboard = () => {
       .eq("provider_id", user.id);
 
     if (bookingsData) {
-      const uniqueCustomers = new Set(bookingsData.map((b) => b.customer_id)).size;
+      const uniqueCustomers = new Set(bookingsData.map((b: any) => b.customer_id)).size;
       
       // Calculate monthly stats
       const now = new Date();
-      const thisMonth = bookingsData.filter((b) => {
+      const thisMonth = bookingsData.filter((b: any) => {
         const bookingDate = new Date(b.created_at);
         return (
           bookingDate.getMonth() === now.getMonth() &&
@@ -122,7 +122,7 @@ const ProviderDashboard = () => {
         );
       });
       
-      const lastMonth = bookingsData.filter((b) => {
+      const lastMonth = bookingsData.filter((b: any) => {
         const bookingDate = new Date(b.created_at);
         const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         return (
@@ -132,15 +132,15 @@ const ProviderDashboard = () => {
         );
       });
 
-      const thisMonthEarnings = thisMonth.reduce((sum, b) => sum + b.total_amount, 0);
-      const lastMonthEarnings = lastMonth.reduce((sum, b) => sum + b.total_amount, 0);
+      const thisMonthEarnings = thisMonth.reduce((sum: number, b: any) => sum + b.total_amount, 0);
+      const lastMonthEarnings = lastMonth.reduce((sum: number, b: any) => sum + b.total_amount, 0);
       const growthPercent = lastMonthEarnings > 0
         ? ((thisMonthEarnings - lastMonthEarnings) / lastMonthEarnings) * 100
         : thisMonthEarnings > 0 ? 100 : 0;
 
       setProviderStats({
-        averageRating: profileData?.average_rating || 0,
-        totalReviews: profileData?.total_reviews || 0,
+        averageRating: (profileData as any)?.average_rating || 0,
+        totalReviews: (profileData as any)?.total_reviews || 0,
         totalCustomers: uniqueCustomers,
         monthlyEarnings: thisMonthEarnings,
         monthlyJobs: thisMonth.length,

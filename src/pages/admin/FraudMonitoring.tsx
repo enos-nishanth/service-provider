@@ -140,7 +140,7 @@ interface Profile {
            .eq("user_id", session.user.id)
            .single();
  
-         if (error || !userData || userData.role !== "admin") {
+         if (error || !userData || (userData as { role: string }).role !== "admin") {
            await supabase.auth.signOut();
            navigate("/admin/login");
            return;
@@ -231,12 +231,12 @@ interface Profile {
  
      setIsProcessing(true);
      try {
-       const { error } = await supabase.from("fraud_flags").insert({
+       const { error } = await (supabase as any).from("fraud_flags").insert({
          user_id: selectedProvider.user_id,
          flag_type: flagType,
          reason: flagReason,
          evidence: flagEvidence || null,
-         flagged_by: currentUserId,
+         flagged_by: currentUserId!,
        });
  
        if (error) throw error;
@@ -258,11 +258,11 @@ interface Profile {
    const handleUpdateFlagStatus = async (flagId: string, newStatus: string) => {
      setIsProcessing(true);
      try {
-       const { error } = await supabase
+       const { error } = await (supabase as any)
          .from("fraud_flags")
          .update({
            status: newStatus,
-           reviewed_by: currentUserId,
+           reviewed_by: currentUserId!,
            reviewed_at: new Date().toISOString(),
          })
          .eq("id", flagId);
@@ -273,7 +273,7 @@ interface Profile {
        if (newStatus === "banned") {
          const flag = fraudFlags.find((f) => f.id === flagId);
          if (flag) {
-          await supabase
+          await (supabase as any)
             .from("users")
             .update({ is_verified: false })
             .eq("user_id", flag.user_id);
@@ -300,13 +300,13 @@ interface Profile {
  
      setIsProcessing(true);
      try {
-       const { error } = await supabase
+       const { error } = await (supabase as any)
          .from("disputes")
          .update({
            status: newStatus,
            resolution: resolution || null,
            admin_notes: adminNotes || null,
-           resolved_by: currentUserId,
+           resolved_by: currentUserId!,
            resolved_at: new Date().toISOString(),
          })
          .eq("id", selectedDispute.id);

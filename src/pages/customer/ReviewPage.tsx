@@ -58,19 +58,24 @@
            .single();
  
          if (bookingError) throw bookingError;
+         
+         if (!bookingData) {
+           throw new Error("Booking not found");
+         }
+         
          setBooking(bookingData);
  
          // Check if already reviewed
          const { data: reviewData } = await supabase
            .from("reviews")
            .select("*")
-           .eq("booking_id", bookingData.id)
+           .eq("booking_id", (bookingData as any).id)
            .single();
  
          if (reviewData) {
            setHasReviewed(true);
-           setRating(reviewData.rating);
-           setFeedback(reviewData.feedback || "");
+           setRating((reviewData as any).rating);
+           setFeedback((reviewData as any).feedback || "");
          }
        } catch (error: any) {
          console.error("Error fetching data:", error);
@@ -115,7 +120,7 @@
          return;
        }
  
-       const { error } = await supabase.from("reviews").insert({
+       const { error } = await (supabase as any).from("reviews").insert({
          booking_id: booking.id,
          customer_id: user.id,
          provider_id: booking.provider_id,

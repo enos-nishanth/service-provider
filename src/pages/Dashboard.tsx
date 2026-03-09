@@ -91,24 +91,24 @@ const Dashboard = () => {
     }
 
     // Fetch profile
-    const { data: profileData } = await supabase
+    const { data: profileData } = await (supabase as any)
       .from("users")
       .select("full_name, is_provider, average_rating, total_reviews")
       .eq("user_id", user.id)
       .single();
 
     if (profileData) {
-      setUserName(profileData.full_name?.split(" ")[0] || "");
-      setIsProvider(profileData.is_provider || false);
+      setUserName((profileData as any).full_name?.split(" ")[0] || "");
+      setIsProvider((profileData as any).is_provider || false);
       
-      if (profileData.is_provider) {
+      if ((profileData as any).is_provider) {
         // Fetch KYC status
-        const { data: kycData } = await supabase
+        const { data: kycData } = await (supabase as any)
           .from("kyc_verifications")
           .select("status")
           .eq("user_id", user.id)
           .single();
-        setKycStatus(kycData?.status || null);
+        setKycStatus((kycData as any)?.status || null);
         
         // Fetch provider metrics
         await fetchProviderMetrics(user.id, profileData);
@@ -118,16 +118,16 @@ const Dashboard = () => {
   };
 
   const fetchProviderMetrics = async (userId: string, profileData: any) => {
-    const { data: bookingsData } = await supabase
+    const { data: bookingsData } = await (supabase as any)
       .from("bookings")
       .select("customer_id, total_amount, status, created_at")
       .eq("provider_id", userId);
 
     if (bookingsData) {
-      const uniqueCustomers = new Set(bookingsData.map((b) => b.customer_id)).size;
+      const uniqueCustomers = new Set((bookingsData as any[]).map((b: any) => b.customer_id)).size;
       
       const now = new Date();
-      const thisMonth = bookingsData.filter((b) => {
+      const thisMonth = (bookingsData as any[]).filter((b: any) => {
         const bookingDate = new Date(b.created_at);
         return (
           bookingDate.getMonth() === now.getMonth() &&
@@ -136,7 +136,7 @@ const Dashboard = () => {
         );
       });
       
-      const lastMonth = bookingsData.filter((b) => {
+      const lastMonth = (bookingsData as any[]).filter((b: any) => {
         const bookingDate = new Date(b.created_at);
         const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         return (
@@ -146,15 +146,15 @@ const Dashboard = () => {
         );
       });
 
-      const thisMonthEarnings = thisMonth.reduce((sum, b) => sum + b.total_amount, 0);
-      const lastMonthEarnings = lastMonth.reduce((sum, b) => sum + b.total_amount, 0);
+      const thisMonthEarnings = thisMonth.reduce((sum: number, b: any) => sum + b.total_amount, 0);
+      const lastMonthEarnings = lastMonth.reduce((sum: number, b: any) => sum + b.total_amount, 0);
       const growthPercent = lastMonthEarnings > 0
         ? ((thisMonthEarnings - lastMonthEarnings) / lastMonthEarnings) * 100
         : thisMonthEarnings > 0 ? 100 : 0;
 
       setProviderMetrics({
-        averageRating: profileData?.average_rating || 0,
-        totalReviews: profileData?.total_reviews || 0,
+        averageRating: (profileData as any)?.average_rating || 0,
+        totalReviews: (profileData as any)?.total_reviews || 0,
         totalCustomers: uniqueCustomers,
         monthlyEarnings: thisMonthEarnings,
         monthlyJobs: thisMonth.length,

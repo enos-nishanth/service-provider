@@ -109,7 +109,7 @@ const JobRequests = () => {
         .single();
 
       if (userData) {
-        setKycStatus(userData.kyc_status);
+        setKycStatus((userData as { kyc_status: string }).kyc_status);
       }
 
       const { data, error } = await supabase
@@ -122,7 +122,7 @@ const JobRequests = () => {
       setBookings(data || []);
 
       // Fetch customer info for each booking
-      const customerIds = [...new Set(data?.map((b) => b.customer_id) || [])];
+      const customerIds = [...new Set(data?.map((b: any) => b.customer_id) || [])];
       for (const customerId of customerIds) {
         const { data: customerData } = await supabase
           .from("users")
@@ -144,7 +144,7 @@ const JobRequests = () => {
    const handleAccept = async (booking: Booking) => {
      setIsProcessing(true);
      try {
-       const { error } = await supabase
+       const { error } = await (supabase as any)
          .from("bookings")
          .update({ status: "accepted" })
          .eq("id", booking.id);
@@ -182,7 +182,7 @@ const JobRequests = () => {
  
      setIsProcessing(true);
      try {
-       const { error } = await supabase
+       const { error } = await (supabase as any)
          .from("bookings")
          .update({
            status: "cancelled",
@@ -224,7 +224,7 @@ const JobRequests = () => {
    const handleStartJob = async (booking: Booking) => {
      setIsProcessing(true);
      try {
-       const { error } = await supabase
+       const { error } = await (supabase as any)
          .from("bookings")
          .update({ status: "in_progress" })
          .eq("id", booking.id);
@@ -260,7 +260,7 @@ const JobRequests = () => {
    const handleCompleteJob = async (booking: Booking) => {
      setIsProcessing(true);
      try {
-       const { error } = await supabase
+       const { error } = await (supabase as any)
          .from("bookings")
          .update({
            status: "completed",

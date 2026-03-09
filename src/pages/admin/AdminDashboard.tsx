@@ -92,7 +92,7 @@
            .eq("user_id", session.user.id)
            .single();
  
-         if (error || !userData || userData.role !== "admin") {
+         if (error || !userData || (userData as { role: string }).role !== "admin") {
            await supabase.auth.signOut();
            navigate("/admin/login");
            return;
@@ -122,8 +122,8 @@
   const fetchDashboardData = async () => {
     try {
       const { data: usersData } = await supabase.from("users").select("*");
-      const customers = usersData?.filter((u) => !u.is_provider) || [];
-      const providers = usersData?.filter((u) => u.is_provider) || [];
+      const customers = usersData?.filter((u: any) => !u.is_provider) || [];
+      const providers = usersData?.filter((u: any) => u.is_provider) || [];
  
        const { data: bookingsData } = await supabase
          .from("bookings")
@@ -131,12 +131,12 @@
          .order("created_at", { ascending: false });
  
        const allBookings = bookingsData || [];
-       const completedBookings = allBookings.filter((b) => b.status === "completed");
-       const pendingBookings = allBookings.filter((b) =>
+       const completedBookings = allBookings.filter((b: any) => b.status === "completed");
+       const pendingBookings = allBookings.filter((b: any) =>
          ["requested", "accepted", "in_progress"].includes(b.status)
        );
-       const cancelledBookings = allBookings.filter((b) => b.status === "cancelled");
-       const totalRevenue = completedBookings.reduce((sum, b) => sum + b.total_amount, 0);
+       const cancelledBookings = allBookings.filter((b: any) => b.status === "cancelled");
+       const totalRevenue = completedBookings.reduce((sum: number, b: any) => sum + b.total_amount, 0);
  
        setStats({
          totalUsers: customers.length,

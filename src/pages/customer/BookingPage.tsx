@@ -77,7 +77,7 @@ const BookingPage = () => {
         .eq("scheduled_date", format(selectedDate, "yyyy-MM-dd"))
         .neq("status", "cancelled");
 
-      const bookedTimes = new Set(existingBookings?.map((b) => b.scheduled_time) || []);
+      const bookedTimes = new Set(existingBookings?.map((b: any) => b.scheduled_time) || []);
 
       // Generate time slots
       const defaultSlots = [
@@ -88,12 +88,12 @@ const BookingPage = () => {
       let availableSlots: string[] = defaultSlots;
 
       if (scheduleData) {
-        if (!scheduleData.is_working) {
+        if (!(scheduleData as any).is_available) {
           availableSlots = [];
         } else {
           // Filter based on start/end time (simplified)
-          const startHour = parseInt(scheduleData.start_time.split(":")[0]);
-          const endHour = parseInt(scheduleData.end_time.split(":")[0]);
+          const startHour = parseInt((scheduleData as any).start_time.split(":")[0]);
+          const endHour = parseInt((scheduleData as any).end_time.split(":")[0]);
           
           availableSlots = defaultSlots.filter((slot) => {
             const slotHour = parseInt(slot.split(":")[0]);

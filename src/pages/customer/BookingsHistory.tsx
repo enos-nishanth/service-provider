@@ -134,7 +134,7 @@ interface ProviderInfo {
        setBookings(data || []);
  
        // Fetch provider info for each booking
-       const providerIds = [...new Set(data?.map((b) => b.provider_id) || [])];
+       const providerIds = [...new Set(data?.map((b: any) => b.provider_id) || [])];
        for (const providerId of providerIds) {
         const { data: userData } = await supabase
           .from("users")

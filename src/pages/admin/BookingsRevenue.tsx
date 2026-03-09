@@ -120,7 +120,7 @@
            .eq("user_id", session.user.id)
            .single();
  
-         if (error || !userData || userData.role !== "admin") {
+         if (error || !userData || (userData as { role: string }).role !== "admin") {
            await supabase.auth.signOut();
            navigate("/admin/login");
            return;

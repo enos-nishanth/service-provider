@@ -78,7 +78,7 @@ const BecomeProvider = () => {
     const fileExt = certificationFile.name.split('.').pop();
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
-    const { error } = await supabase.storage
+    const { error } = await (supabase as any).storage
       .from('certifications')
       .upload(fileName, certificationFile);
 
@@ -111,7 +111,7 @@ const BecomeProvider = () => {
       }
 
       // Update profile to become a provider
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from('users')
         .update({
           is_provider: true,

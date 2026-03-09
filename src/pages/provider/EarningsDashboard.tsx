@@ -69,7 +69,7 @@
        setBookings(data || []);
  
        // Fetch customer info
-       const customerIds = [...new Set(data?.map((b) => b.customer_id) || [])];
+       const customerIds = [...new Set(data?.map((b: any) => b.customer_id) || [])];
        for (const customerId of customerIds) {
         const { data: userData } = await supabase
           .from("users")

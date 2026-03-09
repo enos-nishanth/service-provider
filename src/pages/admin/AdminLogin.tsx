@@ -45,7 +45,7 @@
              .eq("user_id", session.user.id)
              .single();
  
-           if (userData?.role === "admin") {
+           if (userData && (userData as { role: string }).role === "admin") {
              navigate("/admin");
              return;
            }
@@ -103,7 +103,7 @@
          .eq("user_id", authData.user.id)
          .single();
  
-       if (roleError || !userData || userData.role !== "admin") {
+       if (roleError || !userData || (userData as { role: string }).role !== "admin") {
          // Sign out non-admin user
          await supabase.auth.signOut();
          setError("Access denied. You are not authorized to access the admin panel.");

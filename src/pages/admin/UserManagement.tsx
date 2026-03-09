@@ -116,7 +116,7 @@ interface Profile {
            .eq("user_id", session.user.id)
            .single();
  
-         if (error || !userData || userData.role !== "admin") {
+         if (error || !userData || (userData as { role: string }).role !== "admin") {
            await supabase.auth.signOut();
            navigate("/admin/login");
            return;
@@ -146,8 +146,8 @@ interface Profile {
       if (usersError) throw usersError;
 
       const allUsers = usersData || [];
-      setCustomers(allUsers.filter((u) => !u.is_provider));
-      setProviders(allUsers.filter((u) => u.is_provider));
+      setCustomers(allUsers.filter((u: any) => !u.is_provider));
+      setProviders(allUsers.filter((u: any) => u.is_provider));
  
        // Fetch KYC verifications
        const { data: kycData, error: kycError } = await supabase
@@ -176,7 +176,7 @@ interface Profile {
        const { data: { session } } = await supabase.auth.getSession();
  
        // Update KYC verification status
-       const { error: kycError } = await supabase
+       const { error: kycError } = await (supabase as any)
          .from("kyc_verifications")
          .update({
            status: action === "approve" ? "approved" : "rejected",
@@ -189,7 +189,7 @@ interface Profile {
        if (kycError) throw kycError;
  
       // Update provider in users table
-      const { error: userError } = await supabase
+      const { error: userError } = await (supabase as any)
         .from("users")
         .update({
           kyc_status: action === "approve" ? "approved" : "rejected",
@@ -229,7 +229,7 @@ interface Profile {
  
      setIsProcessing(true);
      try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("users")
         .update({
           is_verified: statusAction === "activate",
