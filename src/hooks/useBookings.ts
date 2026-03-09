@@ -79,7 +79,7 @@ export const useBookings = (options: UseBookingsOptions) => {
         const pageSize = options.pageSize || 10;
         
         // Fetch bookings without JOIN
-        let query = supabase
+        let query = (supabase as any)
           .from("bookings")
           .select("*", { count: usePagination ? "exact" : undefined })
           .eq(userIdField, user.id)
@@ -123,7 +123,7 @@ export const useBookings = (options: UseBookingsOptions) => {
           options.role === "customer" ? booking.provider_id : booking.customer_id
         );
 
-        const { data: usersData, error: usersError } = await supabase
+        const { data: usersData, error: usersError } = await (supabase as any)
           .from("users")
           .select("user_id, full_name, email, mobile, avatar_url, average_rating")
           .in("user_id", relatedUserIds);
@@ -138,7 +138,7 @@ export const useBookings = (options: UseBookingsOptions) => {
         // Combine bookings with user data
         const bookingsWithDetails: BookingWithDetails[] = data.map((booking: any) => {
           const relatedUserId = options.role === "customer" ? booking.provider_id : booking.customer_id;
-          const relatedUser = usersMap.get(relatedUserId);
+          const relatedUser = usersMap.get(relatedUserId) as any;
 
           return {
             ...booking,
@@ -222,7 +222,7 @@ export const useBookings = (options: UseBookingsOptions) => {
       const pageSize = options.pageSize || 10;
       
       // Fetch bookings without JOIN
-      let query = supabase
+      let query = (supabase as any)
         .from("bookings")
         .select("*", { count: usePagination ? "exact" : undefined })
         .eq(userIdField, user.id)
@@ -263,7 +263,7 @@ export const useBookings = (options: UseBookingsOptions) => {
         options.role === "customer" ? booking.provider_id : booking.customer_id
       );
 
-      const { data: usersData, error: usersError } = await supabase
+      const { data: usersData, error: usersError } = await (supabase as any)
         .from("users")
         .select("user_id, full_name, email, mobile, avatar_url, average_rating")
         .in("user_id", relatedUserIds);
@@ -278,7 +278,7 @@ export const useBookings = (options: UseBookingsOptions) => {
       // Combine bookings with user data
       const bookingsWithDetails: BookingWithDetails[] = data.map((booking: any) => {
         const relatedUserId = options.role === "customer" ? booking.provider_id : booking.customer_id;
-        const relatedUser = usersMap.get(relatedUserId);
+        const relatedUser = usersMap.get(relatedUserId) as any;
 
         return {
           ...booking,
@@ -329,50 +329,65 @@ export const useBookingStats = (role: "customer" | "provider") => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const fetchStats = async () => {
+      if (!isMounted) return;
+      
+      setIsLoading(true);
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || !isMounted) return;
+
+        const userIdField = role === "customer" ? "customer_id" : "provider_id";
+
+        const { data, error } = await (supabase as any)
+          .from("bookings")
+          .select("status, total_amount, payment_status")
+          .eq(userIdField, user.id);
+
+        if (error) throw error;
+        if (!isMounted) return;
+
+        const bookings = data || [];
+        const ongoing = bookings.filter((b: any) =>
+          ["requested", "accepted", "in_progress"].includes(b.status)
+        ).length;
+        const completed = bookings.filter((b: any) => b.status === "completed").length;
+        const cancelled = bookings.filter((b: any) => b.status === "cancelled").length;
+        const completedBookings = bookings.filter((b: any) => b.status === "completed");
+        const totalAmount = completedBookings.reduce((sum: number, b: any) => sum + b.total_amount, 0);
+
+        if (isMounted) {
+          setStats({
+            total: bookings.length,
+            ongoing,
+            completed,
+            cancelled,
+            totalSpent: role === "customer" ? totalAmount : 0,
+            totalEarned: role === "provider" ? totalAmount : 0,
+          });
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error("Error fetching stats:", err);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
     fetchStats();
+
+    return () => {
+      isMounted = false;
+    };
   }, [role]);
 
-  const fetchStats = async () => {
-    setIsLoading(true);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const userIdField = role === "customer" ? "customer_id" : "provider_id";
-
-      const { data, error } = await supabase
-        .from("bookings")
-        .select("status, total_amount, payment_status")
-        .eq(userIdField, user.id);
-
-      if (error) throw error;
-
-      const bookings = data || [];
-      const ongoing = bookings.filter((b) =>
-        ["requested", "accepted", "in_progress"].includes(b.status)
-      ).length;
-      const completed = bookings.filter((b) => b.status === "completed").length;
-      const cancelled = bookings.filter((b) => b.status === "cancelled").length;
-      const completedBookings = bookings.filter((b) => b.status === "completed");
-      const totalAmount = completedBookings.reduce((sum, b) => sum + b.total_amount, 0);
-
-      setStats({
-        total: bookings.length,
-        ongoing,
-        completed,
-        cancelled,
-        totalSpent: role === "customer" ? totalAmount : 0,
-        totalEarned: role === "provider" ? totalAmount : 0,
-      });
-    } catch (err) {
-      console.error("Error fetching stats:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return { stats, isLoading, refetch: fetchStats };
+  return { stats, isLoading };
 };
 
 export const useReviewStats = (role: "customer" | "provider") => {
@@ -380,30 +395,42 @@ export const useReviewStats = (role: "customer" | "provider") => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchReviewCount();
-  }, [role]);
+    let isMounted = true;
 
-  const fetchReviewCount = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    const fetchReviewCount = async () => {
+      if (!isMounted) return;
 
-      const userIdField = role === "customer" ? "customer_id" : "provider_id";
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || !isMounted) return;
 
-      const { count: reviewCount, error } = await supabase
-        .from("reviews")
-        .select("*", { count: "exact", head: true })
-        .eq(userIdField, user.id);
+        const userIdField = role === "customer" ? "customer_id" : "provider_id";
 
-      if (!error && reviewCount !== null) {
-        setCount(reviewCount);
+        const { count: reviewCount, error } = await (supabase as any)
+          .from("reviews")
+          .select("*", { count: "exact", head: true })
+          .eq(userIdField, user.id);
+
+        if (!error && reviewCount !== null && isMounted) {
+          setCount(reviewCount);
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error("Error fetching review count:", err);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-    } catch (err) {
-      console.error("Error fetching review count:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    fetchReviewCount();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [role]);
 
   return { count, isLoading };
 };
