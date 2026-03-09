@@ -85,11 +85,13 @@
      setUserId(session.user.id);
      
      // Fetch existing KYC data
-     const { data, error } = await supabase
+     const { data, error } = await (supabase as any)
        .from('kyc_verifications')
        .select('*')
        .eq('user_id', session.user.id)
-       .single();
+       .order('created_at', { ascending: false })
+       .limit(1)
+       .maybeSingle();
      
      if (data) {
        setKycData(data as KYCData);

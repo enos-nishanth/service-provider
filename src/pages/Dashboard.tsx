@@ -107,7 +107,9 @@ const Dashboard = () => {
           .from("kyc_verifications")
           .select("status")
           .eq("user_id", user.id)
-          .single();
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
         setKycStatus((kycData as any)?.status || null);
         
         // Fetch provider metrics

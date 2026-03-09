@@ -81,11 +81,13 @@ const ProviderDashboard = () => {
     }
 
     // Fetch KYC status
-    const { data: kycData } = await supabase
+    const { data: kycData } = await (supabase as any)
       .from("kyc_verifications")
       .select("status")
       .eq("user_id", user.id)
-      .single();
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     
     setKycStatus((kycData as any)?.status || null);
     setIsKYCLoading(false);
