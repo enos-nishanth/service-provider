@@ -272,7 +272,10 @@
            is_primary: s.is_primary,
          }));
          const { error: skillError } = await (supabase as any).from("provider_skills").insert(skillsToInsert);
-         if (skillError) throw skillError;
+         if (skillError) {
+           console.error("Skill insert error:", skillError);
+           throw skillError;
+         }
        }
  
        // Delete and re-insert service areas
@@ -285,7 +288,10 @@
            radius_km: a.radius_km,
          }));
          const { error: areaError } = await (supabase as any).from("provider_service_areas").insert(areasToInsert);
-         if (areaError) throw areaError;
+         if (areaError) {
+           console.error("Service area insert error:", areaError);
+           throw areaError;
+         }
        }
  
        // Update primary skill in profile

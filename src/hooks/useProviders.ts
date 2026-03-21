@@ -53,7 +53,7 @@ export const useProviders = (options: UseProvidersOptions = {}) => {
 
     try {
       // Fetch providers with is_provider = true and approved KYC
-      let query = supabase
+      let query = (supabase as any)
         .from("users")
         .select("*")
         .eq("is_provider", true)
@@ -68,27 +68,30 @@ export const useProviders = (options: UseProvidersOptions = {}) => {
       if (usersError) throw usersError;
 
       if (!usersData || usersData.length === 0) {
+        console.log("No approved providers found");
         setProviders([]);
         return;
       }
 
+      console.log(`Found ${usersData.length} approved providers`);
+
       // Get provider IDs
-      const providerIds = usersData.map((u) => u.user_id);
+      const providerIds = (usersData as any[]).map((u: any) => u.user_id);
 
       // Fetch skills for all providers
-      const { data: skillsData } = await supabase
+      const { data: skillsData } = await (supabase as any)
         .from("provider_skills")
         .select("*")
         .in("provider_id", providerIds);
 
       // Fetch service areas for all providers
-      const { data: areasData } = await supabase
+      const { data: areasData } = await (supabase as any)
         .from("provider_service_areas")
         .select("*")
         .in("provider_id", providerIds);
 
       // Map skills and areas to providers
-      const providersWithDetails: Provider[] = usersData.map((user) => ({
+      const providersWithDetails: Provider[] = (usersData as any[]).map((user: any) => ({
         id: user.id,
         user_id: user.user_id,
         full_name: user.full_name,
@@ -102,8 +105,8 @@ export const useProviders = (options: UseProvidersOptions = {}) => {
         total_reviews: user.total_reviews,
         is_verified: user.is_verified,
         kyc_status: user.kyc_status,
-        skills: (skillsData || []).filter((s) => s.provider_id === user.user_id),
-        service_areas: (areasData || []).filter((a) => a.provider_id === user.user_id),
+        skills: (skillsData || []).filter((s: any) => s.provider_id === user.user_id),
+        service_areas: (areasData || []).filter((a: any) => a.provider_id === user.user_id),
       }));
 
       // Filter by category if specified
@@ -170,21 +173,21 @@ export const useProvider = (providerId: string | undefined) => {
 
     try {
       // Try to fetch by user_id first, then by id
-      let { data: userData, error: userError } = await supabase
+      let { data: userData, error: userError } = await (supabase as any)
         .from("users")
         .select("*")
         .eq("user_id", providerId)
         .eq("is_provider", true)
-        .single();
+        .maybeSingle();
 
       if (userError || !userData) {
         // Try by id
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from("users")
           .select("*")
           .eq("id", providerId)
           .eq("is_provider", true)
-          .single();
+          .maybeSingle();
         
         if (error) throw error;
         userData = data;
@@ -195,31 +198,31 @@ export const useProvider = (providerId: string | undefined) => {
       }
 
       // Fetch skills
-      const { data: skillsData } = await supabase
+      const { data: skillsData } = await (supabase as any)
         .from("provider_skills")
         .select("*")
-        .eq("provider_id", userData.user_id);
+        .eq("provider_id", (userData as any).user_id);
 
       // Fetch service areas
-      const { data: areasData } = await supabase
+      const { data: areasData } = await (supabase as any)
         .from("provider_service_areas")
         .select("*")
-        .eq("provider_id", userData.user_id);
+        .eq("provider_id", (userData as any).user_id);
 
       const providerWithDetails: Provider = {
-        id: userData.id,
-        user_id: userData.user_id,
-        full_name: userData.full_name,
-        email: userData.email,
-        mobile: userData.mobile,
-        avatar_url: userData.avatar_url,
-        primary_skill: userData.primary_skill,
-        service_location: userData.service_location,
-        service_description: userData.service_description,
-        average_rating: userData.average_rating,
-        total_reviews: userData.total_reviews,
-        is_verified: userData.is_verified,
-        kyc_status: userData.kyc_status,
+        id: (userData as any).id,
+        user_id: (userData as any).user_id,
+        full_name: (userData as any).full_name,
+        email: (userData as any).email,
+        mobile: (userData as any).mobile,
+        avatar_url: (userData as any).avatar_url,
+        primary_skill: (userData as any).primary_skill,
+        service_location: (userData as any).service_location,
+        service_description: (userData as any).service_description,
+        average_rating: (userData as any).average_rating,
+        total_reviews: (userData as any).total_reviews,
+        is_verified: (userData as any).is_verified,
+        kyc_status: (userData as any).kyc_status,
         skills: skillsData || [],
         service_areas: areasData || [],
       };
