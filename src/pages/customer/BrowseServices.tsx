@@ -92,10 +92,14 @@ const ProviderCard = ({ provider }: { provider: Provider }) => {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-foreground">{provider.full_name}</h3>
-                {provider.is_verified && (
+                {provider.kyc_status === "approved" && provider.is_verified ? (
                   <Badge variant="secondary" className="bg-success/10 text-success">
                     <ShieldCheck className="mr-1 h-3 w-3" />
                     Verified
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="bg-amber-500/10 text-amber-600">
+                    Not Verified
                   </Badge>
                 )}
               </div>

@@ -73,28 +73,16 @@ export const useProviders = (options: UseProvidersOptions = {}) => {
         kyc_status: p.kyc_status 
       })));
 
-      // Now filter by approved KYC
-      query = (supabase as any)
-        .from("users")
-        .select("*")
-        .eq("is_provider", true)
-        .eq("kyc_status", "approved");
-
-      if (options.verifiedOnly) {
-        query = query.eq("is_verified", true);
-      }
-
-      const { data: usersData, error: usersError } = await query;
-
-      if (usersError) throw usersError;
+      // Use all providers, not just approved ones
+      const usersData = allProviders;
 
       if (!usersData || usersData.length === 0) {
-        console.log("No approved providers found");
+        console.log("No providers found");
         setProviders([]);
         return;
       }
 
-      console.log(`Found ${usersData.length} approved providers`);
+      console.log(`Showing ${usersData.length} providers (including unverified)`);
 
       // Get provider IDs
       const providerIds = (usersData as any[]).map((u: any) => u.user_id);
