@@ -188,16 +188,29 @@ interface Profile {
  
        if (kycError) throw kycError;
  
+      console.log("Updating user table for user_id:", selectedKYC.user_id);
+
       // Update provider in users table
-      const { error: userError } = await (supabase as any)
+      const { error: userError, data: userData } = await (supabase as any)
         .from("users")
         .update({
           kyc_status: action === "approve" ? "approved" : "rejected",
           is_verified: action === "approve",
         })
-        .eq("user_id", selectedKYC.user_id);
+        .eq("user_id", selectedKYC.user_id)
+        .select();
  
-       if (userError) throw userError;
+       console.log("User update result:", { error: userError, data: userData });
+
+       if (userError) {
+         console.error("Error updating user:", userError);
+         throw userError;
+       }
+
+       if (!userData || userData.length === 0) {
+         console.error("No user found with user_id:", selectedKYC.user_id);
+         throw new Error("User not found");
+       }
  
        // Send notification to provider
        await createNotification(
