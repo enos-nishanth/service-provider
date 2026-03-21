@@ -56,6 +56,27 @@ export const useProviders = (options: UseProvidersOptions = {}) => {
       let query = (supabase as any)
         .from("users")
         .select("*")
+        .eq("is_provider", true);
+
+      console.log("Fetching providers with is_provider = true");
+
+      const { data: allProviders, error: allProvidersError } = await query;
+      
+      if (allProvidersError) {
+        console.error("Error fetching providers:", allProvidersError);
+        throw allProvidersError;
+      }
+
+      console.log(`Total providers found: ${allProviders?.length || 0}`);
+      console.log("Provider KYC statuses:", allProviders?.map((p: any) => ({ 
+        name: p.full_name, 
+        kyc_status: p.kyc_status 
+      })));
+
+      // Now filter by approved KYC
+      query = (supabase as any)
+        .from("users")
+        .select("*")
         .eq("is_provider", true)
         .eq("kyc_status", "approved");
 
